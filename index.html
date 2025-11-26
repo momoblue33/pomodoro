@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>25min Pomodoro Circle</title>
+  <style>
+    :root {
+      /* 好きな色に変えたいときはここを調整 */
+      --bg-color: transparent;      /* 背景。白にしたければ #ffffff */
+      --ring-bg: #e5e7eb;          /* 薄いグレー（背景の輪） */
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-color);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    .timer-wrapper {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-svg {
+      transform: rotate(-90deg); /* 12時の位置からスタート */
+    }
+
+    .timer-text {
+      position: absolute;
+      text-align: center;
+    }
+
+    .time-display {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .label {
+      font-size: 12px;
+      margin-top: 4px;
+      color: #6b7280;
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    button {
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 6px 16px;
+      background: #f9fafb;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f3f4f6;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="timer-wrapper">
+      <svg
+        class="timer-svg"
+        width="180"
+        height="180"
+        viewBox="0 0 120 120"
+      >
+        <!-- 背景の輪っか -->
+        <circle
+          cx="60"
+          cy="60"
+          r="54"
+          stroke="var(--ring-bg)"
+          stroke-width="8"
+          fill="none"
+        ></circle>
+
+        <!-- 残り時間を示す輪っか（色が青→赤に変わる） -->
+        <circle
+          id="progress-ring"
+          cx="60"
+          cy="60"
+          r="54"
+          stroke-width="8"
+          fill="none"
+          stroke-linecap="round"
+        ></circle>
+      </svg>
+
+      <div class="timer-text">
+        <div id="time-text" class="time-display">25:00</div>
+        <div class="label">Pomodoro 25 min</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="start-btn">スタート</button>
+      <button id="reset-btn">リセット</button>
+    </div>
+  </div>
+
+  <script>
+    const FULL_TIME = 25 * 60; // 25分
+    let remaining = FULL_TIME;
+    let timerId = null;
+
+    const timeText = document.getElementById("time-text");
+    const startBtn = document.getElementById("start-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const ring = document.getElementById("progress-ring");
+
+    const radius = 54;
+    const circumference = 2 * Math.PI * radius;
+
+    ring.style.strokeDasharray = `${circumference}`;
+    ring.style.strokeDashoffset = `${circumference}`;
+
+    // 初期色（青）と最終色（赤）
+    const startColor = { r: 59, g: 130, b: 246 }; // #3b82f6
+    const endColor = { r: 239, g: 68, b: 68 };   // #ef4444
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function updateView() {
+      // テキスト
+      timeText.textContent = formatTime(remaining);
+
+      // 進捗（0〜1）
+      const progress = (FULL_TIME - remaining) / FULL_TIME;
+
+      // 円の長さを進捗に応じて減らす
+      const offset = circumference * (1 - progress);
+      ring.style.strokeDashoffset = `${offset}`;
+
+      // 色（青→赤のグラデーション）
+      const r =
+        startColor.r + (endColor.r - startColor.r) * progress;
+      const g =
+        startColor.g + (endColor.g - startColor.g) * progress;
+      const b =
+        startColor.b + (endColor.b - startColor.b) * progress;
+
+      ring.style.stroke = `rgb(${Math.round(r)}, ${Math.round(
+        g
+      )}, ${Math.round(b)})`;
+    }
+
+    function startTimer() {
+      if (timerId !== null) return;
+
+      timerId = setInterval(() => {
+        if (remaining <= 0) {
+          clearInterval(timerId);
+          timerId = null;
+          remaining = 0;
+          updateView();
+          // 音をつけたくなったらここに再生処理を入れる
+          return;
+        }
+        remaining -= 1;
+        updateView();
+      }, 1000);
+    }
+
+    function resetTimer() {
+      if (timerId !== null) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      remaining = FULL_TIME;
+      // 初期状態：青で満タン
+      ring.style.strokeDashoffset = `${circumference}`;
+      ring.style.stroke = `rgb(${startColor.r}, ${startColor.g}, ${startColor.b})`;
+      timeText.textContent = formatTime(remaining);
+    }
+
+    startBtn.addEventListener("click", startTimer);
+    resetBtn.addEventListener("click", resetTimer);
+
+    // 初期表示
+    resetTimer();
+  </script>
+</body>
+</html>
