@@ -11,6 +11,11 @@
       --btn-bg: #ffffff;
       --btn-border: #d1d5db;
       --btn-hover: #f3f4f6;
+
+      /* ▼ Mihoさん指定：ふわっと淡い青（Bタイプ） */
+      --active-bg: #f0f9ff;
+      --active-border: #bae6fd;
+      --active-text: #075985;
     }
 
     body {
@@ -26,7 +31,7 @@
       color: var(--text-color);
     }
 
-    /* ▼ 時間選択 */
+    /* ▼ 時間選択ボタン */
     .time-select {
       display: flex;
       gap: 12px;
@@ -47,9 +52,9 @@
     }
 
     .time-select .active {
-      background: #e0f2fe;
-      border-color: #38bdf8;
-      color: #0c4a6e;
+      background: var(--active-bg);
+      border-color: var(--active-border);
+      color: var(--active-text);
       font-weight: 600;
     }
 
@@ -61,7 +66,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 28px;
+      margin-bottom: 10px;
     }
 
     .timer-svg {
@@ -77,21 +82,30 @@
       font-size: 36px;
       font-weight: 600;
       color: #111827;
+      margin-top: 24px;
     }
 
     .label {
-      font-size: 13px;
-      margin-top: 4px;
-      color: #6b7280;
+      font-size: 14px;
+      margin-top: 8px;
+      color: #374151;
     }
 
-    /* ▼ スタート/リセット（縦配置） */
+    /* ▼ 下のコピーライト */
+    .credit {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+      letter-spacing: 0.03em;
+    }
+
+    /* ▼ スタート／リセット（縦配置） */
     .controls {
-      margin-top: 10px;
+      margin-top: 18px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      width: 160px;
+      width: 180px;
     }
 
     .controls button {
@@ -106,6 +120,14 @@
     .controls button:hover {
       background: var(--btn-hover);
     }
+
+    /* ▼ スタート中の青ハイライト */
+    .controls .active {
+      background: var(--active-bg);
+      border-color: var(--active-border);
+      color: var(--active-text);
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -114,8 +136,8 @@
   <!-- ▼ 時間選択ボタン（3つ） -->
   <div class="time-select">
     <button onclick="setTime(5)" id="btn-5">5分</button>
-    <button onclick="setTime(15)" id="btn-15">15分</button>
     <button onclick="setTime(25)" id="btn-25" class="active">25分</button>
+    <button onclick="setTime(50)" id="btn-50">50分</button>
   </div>
 
   <!-- ▼ 円形タイマー -->
@@ -127,16 +149,19 @@
 
     <div class="timer-text">
       <div id="time-text" class="time-display">25:00</div>
-      <div class="label">Pomodoro</div>
+      <div class="label">concentration</div>
     </div>
   </div>
+
+
 
   <!-- ▼ スタート／リセット（縦） -->
   <div class="controls">
     <button id="start-btn" onclick="toggleStart()">▶ スタート</button>
     <button onclick="resetTimer()">リセット</button>
   </div>
-
+   <br>
+        <div class="credit">©︎momo_blue</div>
   <script>
     let FULL_TIME = 25 * 60;
     let remaining = FULL_TIME;
@@ -177,6 +202,7 @@
         if (remaining <= 0) {
           clearInterval(timerId);
           timerId = null;
+          startBtn.classList.remove("active");
           startBtn.textContent = "▶ スタート";
           remaining = 0;
           updateView();
@@ -186,18 +212,22 @@
         updateView();
       }, 1000);
     }
+  function toggleStart() {
+    if (timerId) {
+    // ▼ 停止だけ（残り時間はそのまま）
+    clearInterval(timerId);
+    timerId = null;
+    startBtn.classList.remove("active");
+    startBtn.textContent = "▶ 再開";
+    return;
+  }
 
-    function toggleStart() {
-      if (timerId) {
-        clearInterval(timerId);
-        timerId = null;
-        startBtn.textContent = "▶ スタート";
-        return;
-      }
-      remaining = FULL_TIME;
-      startBtn.textContent = "■ ストップ";
-      startTimerEngine();
-    }
+  // ▼ 再開 or 初回スタート
+  startBtn.textContent = "■ ストップ";
+  startBtn.classList.add("active");
+  startTimerEngine();
+}
+
 
     function resetTimer() {
       if (timerId) {
@@ -209,6 +239,7 @@
       ring.style.stroke = `rgb(${startColor.r}, ${startColor.g}, ${startColor.b})`;
       timeText.textContent = formatTime(FULL_TIME);
       startBtn.textContent = "▶ スタート";
+      startBtn.classList.remove("active");
     }
 
     function setTime(min) {
@@ -223,10 +254,9 @@
       });
       document.getElementById(`btn-${min}`).classList.add("active");
     }
+    
+
 
   </script>
 </body>
 </html>
-
-
-
