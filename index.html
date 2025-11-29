@@ -6,8 +6,8 @@
   <style>
     :root {
       --bg-color: transparent;
-      --ring-bg: #e5e7eb;       /* 薄いグレー（背景リング） */
-      --text-color: #111827;    /* 黒に近いグレー */
+      --ring-bg: #e5e7eb;
+      --text-color: #111827;
       --btn-bg: #ffffff;
       --btn-border: #d1d5db;
       --btn-hover: #f3f4f6;
@@ -26,7 +26,6 @@
       color: var(--text-color);
     }
 
-    /* 時間選択ボタンのエリア */
     .time-select {
       display: flex;
       gap: 8px;
@@ -47,13 +46,12 @@
     }
 
     .time-select .active {
-      background: #e0f2fe; /* 薄い青 */
+      background: #e0f2fe;
       border-color: #38bdf8;
       color: #0c4a6e;
       font-weight: 600;
     }
 
-    /* 円形タイマーの枠 */
     .timer-wrapper {
       position: relative;
       width: 220px;
@@ -84,7 +82,6 @@
       color: #6b7280;
     }
 
-    /* 下のStart/Reset */
     .controls {
       margin-top: 18px;
       display: flex;
@@ -108,25 +105,20 @@
 </head>
 
 <body>
-  <!-- ▼ 時間選択ボタン（ミニマル） -->
+  <!-- ▼ 時間選択ボタン -->
   <div class="time-select">
     <button onclick="setTime(5)" id="btn-5">5分</button>
-    <button onclick="setTime(10)" id="btn-10">10分</button>
+  
     <button onclick="setTime(15)" id="btn-15">15分</button>
-    <button onclick="setTime(20)" id="btn-20">20分</button>
+  
     <button onclick="setTime(25)" id="btn-25" class="active">25分</button>
   </div>
 
-  <!-- ▼ 円形タイマー本体 -->
+  <!-- ▼ 円形タイマー -->
   <div class="timer-wrapper">
     <svg class="timer-svg" width="180" height="180" viewBox="0 0 120 120">
       <circle cx="60" cy="60" r="54" stroke="var(--ring-bg)" stroke-width="8" fill="none"></circle>
-
-      <circle id="progress-ring"
-        cx="60" cy="60" r="54"
-        stroke-width="8"
-        fill="none"
-        stroke-linecap="round"></circle>
+      <circle id="progress-ring" cx="60" cy="60" r="54" stroke-width="8" fill="none" stroke-linecap="round"></circle>
     </svg>
 
     <div class="timer-text">
@@ -135,27 +127,28 @@
     </div>
   </div>
 
-  <!-- ▼ スタート / リセット -->
+  <!-- ▼ Start / Reset -->
   <div class="controls">
-    <button onclick="startTimer()">スタート</button>
+    <button id="start-btn" onclick="toggleStart()">▶ スタート</button>
     <button onclick="resetTimer()">リセット</button>
   </div>
 
   <script>
-    let FULL_TIME = 25 * 60; 
+    let FULL_TIME = 25 * 60;
     let remaining = FULL_TIME;
     let timerId = null;
 
     const ring = document.getElementById("progress-ring");
     const timeText = document.getElementById("time-text");
+    const startBtn = document.getElementById("start-btn");
 
     const radius = 54;
     const circumference = 2 * Math.PI * radius;
     ring.style.strokeDasharray = `${circumference}`;
     ring.style.strokeDashoffset = `${circumference}`;
 
-    const startColor = { r: 59, g: 130, b: 246 };  // 青 #3b82f6
-    const endColor   = { r: 239, g: 68, b: 68 };   // 赤 #ef4444
+    const startColor = { r: 59, g: 130, b: 246 };
+    const endColor   = { r: 239, g: 68, b: 68 };
 
     function formatTime(sec) {
       const m = Math.floor(sec / 60);
@@ -177,13 +170,12 @@
       ring.style.stroke = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
     }
 
-    function startTimer() {
-      if (timerId) return;
-
+    function startTimerEngine() {
       timerId = setInterval(() => {
         if (remaining <= 0) {
           clearInterval(timerId);
           timerId = null;
+          startBtn.textContent = "▶ スタート";
           remaining = 0;
           updateView();
           return;
@@ -191,6 +183,19 @@
         remaining -= 1;
         updateView();
       }, 1000);
+    }
+
+    /* ▼ スタート/ストップ切り替え */
+    function toggleStart() {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+        startBtn.textContent = "▶ スタート";
+        return;
+      }
+      remaining = FULL_TIME;
+      startBtn.textContent = "■ ストップ";
+      startTimerEngine();
     }
 
     function resetTimer() {
@@ -201,13 +206,13 @@
       remaining = FULL_TIME;
       ring.style.strokeDashoffset = circumference;
       ring.style.stroke = `rgb(${startColor.r}, ${startColor.g}, ${startColor.b})`;
-      timeText.textContent = formatTime(remaining);
+      timeText.textContent = formatTime(FULL_TIME);
+      startBtn.textContent = "▶ スタート";
     }
 
-    /* ▼ 時間選択ロジック（ミニマルUI） */
+    /* ▼ 時間選択 */
     function setTime(min) {
       FULL_TIME = min * 60;
-      remaining = FULL_TIME;
       resetTimer();
       updateActiveButton(min);
     }
@@ -219,6 +224,8 @@
       document.getElementById(`btn-${min}`).classList.add("active");
     }
   </script>
+
 </body>
 </html>
+
 
